@@ -1,0 +1,97 @@
+﻿@page "/"
+@page "/billing"
+@using BillingSystem.Components.Pages
+@using Radzen
+@using Radzen.Blazor
+@using billing.Models
+@inherits BillingBase
+
+<RadzenNotification />
+
+<div class="container mt-4" style="direction: rtl;">
+
+    <RadzenCard class="mb-4 shadow-sm">
+        <div class="row align-items-end">
+            <div class="col-md-4">
+                <RadzenLabel Text="رقم الهاتف" Component="PhoneSearch" style="font-weight: bold;" />
+                <RadzenTextBox Name="PhoneSearch"
+                               @bind-Value="PhoneNumber"
+                               MaxLength="10"
+                               Placeholder="05xxxxxxxx"
+                               Style="width: 100%;" />
+            </div>
+            <div class="col-md-2">
+                <RadzenButton Text="بحث" Icon="search" ButtonStyle="ButtonStyle.Primary" Click="@Search" Style="width: 100%;" />
+            </div>
+        </div>
+    </RadzenCard>
+
+    @if (ShowResults)
+    {
+        <h3 class="mb-3 text-primary" style="text-align: right;">نتائج الفواتير</h3>
+
+        <div class="card shadow-sm p-3 fade-in">
+            <RadzenDataGrid Data="@billingList" TItem="BillingInfo" AllowPaging="false" AllowSorting="true" ColumnWidth="150px">
+                <Columns>
+                    <RadzenDataGridColumn TItem="BillingInfo" Property="month" Title="الدورة" TextAlign="TextAlign.Center" Width="100px" />
+
+                    <RadzenDataGridColumn TItem="BillingInfo" Property="amount" Title="المبلغ" TextAlign="TextAlign.Center" Width="100px" />
+
+                    <RadzenDataGridColumn TItem="BillingInfo" Property="Cost" Title="التكلفة" TextAlign="TextAlign.Center" Width="100px" />
+
+                    <RadzenDataGridColumn TItem="BillingInfo" Title="تنفيذ" Width="450px" TextAlign="TextAlign.Center">
+                        <Template Context="item">
+
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+
+                                @if (!string.IsNullOrEmpty(item.IdNo))
+                                {
+                                    <RadzenButton Text="@(IsBillPaid(item) ? "تم الدفع" : "دفع فوري")"
+                                                  ButtonStyle="@(IsBillPaid(item) ? ButtonStyle.Success : ButtonStyle.Primary)"
+                                                  Icon="@(IsBillPaid(item) ? "check_circle" : "payment")"
+                                                  Click="@(() => PayInstant(item))"
+                                                  Disabled="@IsBillPaid(item)" />
+
+                                    <span class="badge bg-light text-dark border">@item.IdNo</span>
+                                }
+                                else
+                                {
+                                
+                                    <RadzenButton Text="يدوي"
+                                                  ButtonStyle="ButtonStyle.Secondary"
+                                                  Click="@(() => PayManual(item))"
+                                                  Visible="@(!item.disable_manualpay)"
+                                                  Disabled="@IsBillPaid(item)"
+                                                  Size="ButtonSize.Small" />
+
+                                    <RadzenButton Text="دفع فوري"
+                                                  ButtonStyle="ButtonStyle.Primary"
+                                                  Click="@(() => PayInstant(item))"
+                                                  Disabled="@(IsBillPaid(item) || string.IsNullOrWhiteSpace(item.IdNo))"
+                                                  Size="ButtonSize.Small" />
+
+                                    <RadzenTextBox Placeholder="رقم الهوية (9)"
+                                                   @bind-Value="item.IdNo"
+                                                   MaxLength="9"
+                                                   Disabled="@IsBillPaid(item)"
+                                                   Style="width: 150px; font-size: 0.9rem;" />
+                                }
+
+                            </div>
+
+                        </Template>
+                    </RadzenDataGridColumn>
+
+                </Columns>
+            </RadzenDataGrid>
+        </div>
+    }
+    else
+    {
+        <div class="text-center text-muted mt-5">
+            <RadzenIcon Icon="manage_search" Style="font-size: 4rem; color: #ccc;" />
+            <p class="mt-3 fs-5">الرجاء إدخال رقم الهاتف (10 خانات) للبحث.</p>
+        </div>
+    }
+
+</div>
